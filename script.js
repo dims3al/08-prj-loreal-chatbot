@@ -5,12 +5,7 @@ const chatWindow = document.getElementById("chatWindow");
 const sendBtn = document.getElementById("sendBtn");
 const latestQuestionText = document.getElementById("latestQuestionText");
 
-// Add your API key in secrets.js like:
-// const OPENAI_API_KEY = "your-key-here";
-const apiKey =
-  (typeof window.OPENAI_API_KEY === "string" && window.OPENAI_API_KEY.trim()) ||
-  (typeof OPENAI_API_KEY !== "undefined" && OPENAI_API_KEY.trim()) ||
-  "";
+const WORKER_URL = "https://tiny-union-306f.lilwrestlingfire13.workers.dev/";
 
 // Clear, concise system prompt that keeps the chatbot on-topic.
 const SYSTEM_PROMPT =
@@ -51,29 +46,18 @@ chatForm.addEventListener("submit", async (e) => {
 
   messages.push({ role: "user", content: userMessage });
 
-  if (!apiKey) {
-    addMessage(
-      "assistant",
-      "Missing API key. Add OPENAI_API_KEY in secrets.js before sending requests.",
-    );
-    return;
-  }
-
   sendBtn.disabled = true;
   addMessage("assistant", "Thinking...");
 
   try {
-    // Call the Chat Completions API with a messages array.
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Send the conversation to the Cloudflare Worker, which forwards it to OpenAI.
+    const response = await fetch(WORKER_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o",
         messages,
-        temperature: 0.6,
       }),
     });
 
